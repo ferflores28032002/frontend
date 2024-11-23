@@ -10,6 +10,7 @@ import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { useMainStore } from "../store";
 import { useNavigate } from "react-router-dom";
+import ApiMain from "../assets/ApiMain";
 
 type FormData = {
   email: string;
@@ -36,7 +37,18 @@ export default function LoginContainer() {
         id: 1,
         name: "John Doe",
       });
-      navigate("/");
+
+      const resp = await ApiMain.post("/Auth/login", {
+        correo: data.email,
+        password: data.password,
+      });
+
+      if (resp.data.error) {
+        setGenericError(resp.data.error);
+        return;
+      } else {
+        navigate("/");
+      }
     } catch (error) {
       setGenericError("Ha ocurrido un error. Por favor, intenta de nuevo.");
     }
