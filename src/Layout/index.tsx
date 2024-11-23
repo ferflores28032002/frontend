@@ -1,33 +1,24 @@
-import { useEffect, useRef, useState } from "react";
-import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { cn } from "../lib/utils";
-import { Button } from "../components/ui/button";
-import { ScrollArea } from "../components/ui/scroll-area";
 import {
-  LayoutDashboard,
-  Users,
-  ShieldCheck,
-  Lock,
-  Package,
-  Tags,
-  Settings,
-  FileText,
-  BarChart3,
-  ShoppingCart,
   Bell,
-  MessageSquare,
-  Store,
-  Boxes,
-  CreditCard,
-  HelpCircle,
+  Calendar,
   ChevronDown,
-  Menu,
-  Search,
+  Clipboard,
+  FileText,
+  LayoutDashboard,
+  List,
   LogOut,
+  Menu,
+  Package,
+  PenTool,
+  Search,
+  Settings,
+  Users,
   X,
 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
-import { Input } from "../components/ui/input";
+import { Button } from "../components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +27,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
+import { Input } from "../components/ui/input";
+import { ScrollArea } from "../components/ui/scroll-area";
+import { cn } from "../lib/utils";
+import { useMainStore } from "../store";
 
 interface NavItem {
   title: string;
@@ -49,32 +44,7 @@ const navItems: NavItem[] = [
   {
     title: "Dashboard",
     href: "/",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Análisis",
-    href: "/analytics",
-    icon: BarChart3,
-    submenu: [
-      { title: "Ventas", href: "/analytics/sales", icon: CreditCard },
-      { title: "Tráfico", href: "/analytics/traffic", icon: Users },
-    ],
-  },
-  {
-    title: "Productos",
-    href: "/productos",
-    icon: Package,
-    submenu: [
-      { title: "Catálogo", href: "/productos/catalogo", icon: Store },
-      { title: "Categorías", href: "/productos/categorias", icon: Tags },
-      { title: "Inventario", href: "/productos/inventario", icon: Boxes },
-    ],
-  },
-  {
-    title: "Pedidos",
-    href: "/pedidos",
-    icon: ShoppingCart,
-    badge: 3,
+    icon: LayoutDashboard, // Cambia el ícono según tu preferencia
   },
   {
     title: "Usuarios",
@@ -82,48 +52,37 @@ const navItems: NavItem[] = [
     icon: Users,
     submenu: [
       { title: "Lista de Usuarios", href: "/usuarios/lista", icon: FileText },
-      { title: "Agregar Usuario", href: "/usuarios/agregar", icon: Users },
     ],
   },
   {
-    title: "Roles",
-    href: "/roles",
-    icon: ShieldCheck,
-  },
-  {
-    title: "Permisos",
-    href: "/permisos",
-    icon: Lock,
-  },
-  {
-    title: "Configuración",
-    href: "/configuracion",
+    title: "Mantenimientos",
+    href: "/mantenimientos",
     icon: Settings,
     submenu: [
-      { title: "General", href: "/configuracion/general", icon: Settings },
       {
-        title: "Notificaciones",
-        href: "/configuracion/notificaciones",
-        icon: Bell,
-      },
-      {
-        title: "Integraciones",
-        href: "/configuracion/integraciones",
-        icon: Package,
+        title: "Programar Mantenimiento",
+        href: "/mantenimientos/programar",
+        icon: Calendar,
       },
     ],
   },
   {
-    title: "Soporte",
-    href: "/soporte",
-    icon: HelpCircle,
+    title: "Equipos",
+    href: "/equipos",
+    icon: Package,
     submenu: [
-      { title: "Centro de Ayuda", href: "/soporte/ayuda", icon: HelpCircle },
+      { title: "Lista de Equipos", href: "/equipos/lista", icon: List },
+    ],
+  },
+  {
+    title: "Reparaciones",
+    href: "/reparaciones",
+    icon: PenTool,
+    submenu: [
       {
-        title: "Mensajes",
-        href: "/soporte/mensajes",
-        icon: MessageSquare,
-        badge: 2,
+        title: "Solicitar Reparación",
+        href: "/reparaciones/solicitar",
+        icon: Clipboard,
       },
     ],
   },
@@ -328,6 +287,9 @@ export default function Layout() {
     }
   };
 
+  const user = useMainStore((state) => state.user);
+  const logout = useMainStore((state) => state.logout);
+
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
       {sidebarOpen && (
@@ -376,9 +338,11 @@ export default function Layout() {
           <div className="flex items-center gap-3">
             <UserMenu />
             <div>
-              <p className="text-sm font-medium">Usuario Demo</p>
+              <p className="text-sm font-medium">
+                {user?.name || "admin demo"}
+              </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Administrador
+                {user?.email || ""}
               </p>
             </div>
           </div>
@@ -398,8 +362,9 @@ export default function Layout() {
           </Button>
 
           <div className="ml-auto flex items-center gap-4">
+            <span>Hola {user?.name || "admin demo"}!</span>
             <Link to="/login">
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" onClick={logout}>
                 <LogOut className="h-5 w-5" />
               </Button>
             </Link>

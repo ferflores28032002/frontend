@@ -1,22 +1,23 @@
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import * as yup from "yup";
-import { Button } from "../components/ui/button";
+import { Button } from "../../components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from "../components/ui/dialog";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "../components/ui/select";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 
 const schema = yup
   .object({
@@ -30,24 +31,24 @@ const schema = yup
       .string()
       .oneOf(["Activo", "Inactivo", "Pendiente"])
       .required("El estado es requerido"),
-    rol: yup.string().required("El rol es requerido"),
   })
   .required();
 
 type FormData = yup.InferType<typeof schema>;
 
 interface EntryFormModalProps {
-  onEntryAdded: (
-    newEntry: FormData & { id: string; fechaCreacion: Date }
-  ) => void;
+  initialValues?: Partial<FormData>; // Valores iniciales opcionales
   isOpen: boolean; // Control de apertura del modal
   onClose: () => void; // Función para cerrar el modal
 }
 
-const roles = ["Administrador", "Editor", "Visualizador"];
 const estados = ["Activo", "Inactivo", "Pendiente"];
 
-export function EntryFormModal({ onEntryAdded, isOpen, onClose }: EntryFormModalProps) {
+export function EntryFormModal({
+  initialValues,
+  isOpen,
+  onClose,
+}: EntryFormModalProps) {
   const {
     register,
     handleSubmit,
@@ -56,25 +57,28 @@ export function EntryFormModal({ onEntryAdded, isOpen, onClose }: EntryFormModal
     reset,
   } = useForm<FormData>({
     resolver: yupResolver(schema),
+    defaultValues: initialValues || {}, // Cargar valores iniciales
   });
 
+  useEffect(() => {
+    if (initialValues) {
+      reset(initialValues);
+    }
+  }, [initialValues, reset]);
+
   const onSubmit = (data: FormData) => {
-    const newEntry = {
-      ...data,
-      id: Date.now().toString(),
-      fechaCreacion: new Date(),
-    };
-    onEntryAdded(newEntry);
-    onClose(); // Cierra el modal al guardar
+    console.log(data, "data");
+    onClose();
     reset();
-    alert(JSON.stringify(newEntry, null, 2));
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Agregar Nuevo Usuario</DialogTitle>
+          <DialogTitle>
+            {initialValues ? "Editar Usuario" : "Agregar Nuevo Usuario"}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
@@ -115,7 +119,8 @@ export function EntryFormModal({ onEntryAdded, isOpen, onClose }: EntryFormModal
               render={({ field }) => (
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}
+                  defaultValue={initialValues?.estado || ""}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar estado" />
@@ -137,36 +142,8 @@ export function EntryFormModal({ onEntryAdded, isOpen, onClose }: EntryFormModal
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="rol">Rol</Label>
-            <Controller
-              name="rol"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar rol" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {roles.map((rol) => (
-                      <SelectItem key={rol} value={rol}>
-                        {rol}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            {errors.rol && (
-              <p className="text-sm text-destructive">{errors.rol.message}</p>
-            )}
-          </div>
-
           <Button type="submit" className="w-full">
-            Guardar
+            {initialValues ? "Actualizar" : "Guardar"}
           </Button>
         </form>
       </DialogContent>

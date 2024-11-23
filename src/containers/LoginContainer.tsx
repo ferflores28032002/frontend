@@ -8,6 +8,8 @@ import { Card, CardContent } from "../components/ui/card";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
+import { useMainStore } from "../store";
+import { useNavigate } from "react-router-dom";
 
 type FormData = {
   email: string;
@@ -16,6 +18,8 @@ type FormData = {
 
 export default function LoginContainer() {
   const [genericError, setGenericError] = useState<string | null>(null);
+  const login = useMainStore((state) => state.login);
+  const navigate = useNavigate();
 
   const {
     register,
@@ -27,7 +31,12 @@ export default function LoginContainer() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      console.log("Datos del formulario:", data);
+      login({
+        email: data.email,
+        id: 1,
+        name: "John Doe",
+      });
+      navigate("/");
     } catch (error) {
       setGenericError("Ha ocurrido un error. Por favor, intenta de nuevo.");
     }

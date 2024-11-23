@@ -1,53 +1,93 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { LoginPage } from "./pages";
+import React, { useEffect } from "react";
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+  Navigate,
+  Outlet,
+  useLocation,
+} from "react-router-dom";
 import Layout from "./Layout";
-import { DataTable } from "./containers/data-table";
+import { LoginPage } from "./pages";
+import Dashboard from "./components/Dashboard";
+import { DataTable } from "./components/Users/data-table";
+import { useMainStore } from "./store";
 
-const App = () => {
+// Tipos para las props del componente ProtectedRoute
+interface ProtectedRouteProps {
+  isAllowed: boolean;
+  redirectTo?: string;
+}
+
+// Componente de Ruta Protegida
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  isAllowed,
+  redirectTo = "/login",
+}) => {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!isAllowed) {
+      console.warn(`Acceso denegado a la ruta: ${location.pathname}`);
+    }
+  }, [isAllowed, location.pathname]);
+
+  return isAllowed ? <Outlet /> : <Navigate to={redirectTo} replace />;
+};
+
+const App: React.FC = () => {
+  const user = useMainStore((state) => state.user);
+
   return (
     <BrowserRouter>
       <Routes>
+        {/* Ruta pública: Login */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/" element={<Layout />}>
-          <Route index element={<div>Dashboard</div>} />
-          
-          {/* Analytics */}
-          <Route path="analytics">
-            <Route path="sales" element={<div>Análisis de Ventas</div>} />
-            <Route path="traffic" element={<div>Análisis de Tráfico</div>} />
-          </Route>
-          
-          {/* Products */}
-          <Route path="productos">
-            <Route path="catalogo" element={<div>Catálogo de Productos</div>} />
-            <Route path="categorias" element={<div>Categorías</div>} />
-            <Route path="inventario" element={<div>Inventario</div>} />
-          </Route>
-          
-          {/* Orders */}
-          <Route path="pedidos" element={<div>Pedidos ya</div>} />
-          
-          {/* Users */}
-          <Route path="usuarios">
-            <Route path="lista" element={<DataTable />} />
-            <Route path="agregar" element={<div>Agregar Usuario</div>} />
-          </Route>
-          
-          {/* Roles & Permissions */}
-          <Route path="roles" element={<div>Roles</div>} />
-          <Route path="permisos" element={<div>Permisos</div>} />
-          
-          {/* Settings */}
-          <Route path="configuracion">
-            <Route path="general" element={<div>Configuración General</div>} />
-            <Route path="notificaciones" element={<div>Notificaciones</div>} />
-            <Route path="integraciones" element={<div>Integraciones</div>} />
-          </Route>
-          
-          {/* Support */}
-          <Route path="soporte">
-            <Route path="ayuda" element={<div>Centro de Ayuda</div>} />
-            <Route path="mensajes" element={<div>Mensajes</div>} />
+
+        {/* Rutas protegidas */}
+        <Route element={<ProtectedRoute isAllowed={!!user} />}>
+          <Route path="/" element={<Layout />}>
+            <Route
+              index
+              element={
+                <div>
+                  <Dashboard />
+                </div>
+              }
+            />
+
+            {/* Usuarios */}
+            <Route path="usuarios">
+              <Route
+                path="lista"
+                element={
+                  <div>
+                    <DataTable />
+                  </div>
+                }
+              />
+            </Route>
+
+            {/* Mantenimientos */}
+            <Route path="mantenimientos">
+              <Route
+                path="programar"
+                element={<div>Programar Mantenimiento</div>}
+              />
+            </Route>
+
+            {/* Equipos */}
+            <Route path="equipos">
+              <Route path="lista" element={<div>Lista de Equipos</div>} />
+            </Route>
+
+            {/* Reparaciones */}
+            <Route path="reparaciones">
+              <Route
+                path="solicitar"
+                element={<div>Solicitar Reparación</div>}
+              />
+            </Route>
           </Route>
         </Route>
       </Routes>
