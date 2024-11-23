@@ -12,7 +12,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://www.registroreparacionesmantenimientos.somee.com",
+        target: "https://www.registroreparacionesmantenimientos.somee.com",
         changeOrigin: true,
         secure: false, // Permite HTTP inseguro
         rewrite: (path) => path.replace(/^\/api/, ""),
