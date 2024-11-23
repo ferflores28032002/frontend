@@ -25,7 +25,7 @@ const App = () => {
           </Route>
           
           {/* Orders */}
-          <Route path="pedidos" element={<div>Pedidos</div>} />
+          <Route path="pedidos" element={<div>Pedidos ya</div>} />
           
           {/* Users */}
           <Route path="usuarios">
