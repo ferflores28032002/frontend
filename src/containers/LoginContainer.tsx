@@ -35,7 +35,7 @@ export default function LoginContainer() {
       login({
         email: data.email,
         id: 1,
-        name: "John Doe",
+        name: data.email,
       });
 
       const resp = await ApiMain.post("/Auth/login", {
