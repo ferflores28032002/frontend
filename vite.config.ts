@@ -11,11 +11,11 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      // Redirige las solicitudes que comiencen con "/api" al backend
       "/api": {
-        target: "http://www.registroreparacionesmantenimientos.somee.com", // URL de tu backend
+        target: "http://www.registroreparacionesmantenimientos.somee.com",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ""), // Elimina el prefijo "/api"
+        secure: false, // Permite HTTP inseguro
+        rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
   },
