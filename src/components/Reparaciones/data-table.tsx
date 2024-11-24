@@ -12,14 +12,14 @@ import {
 import { useEffect, useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 import Swal from "sweetalert2";
-import { Button } from "../ui/button";
+import { Button } from "../../components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { Input } from "../ui/input";
+} from "../../components/ui/dropdown-menu";
+import { Input } from "../../components/ui/input";
 import {
   Table,
   TableBody,
@@ -27,28 +27,28 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../ui/table";
+} from "../../components/ui/table";
 import { EntryFormModal } from "./EntryFormModal";
 import { LoadingSpinner } from "../LoadingSpinner";
 
-interface Maintenance {
+interface Reparacion {
   id?: string;
-  fechaInicio: string;
-  fechaFin: string;
-  descripcion: string;
-  observaciones?: string;
   equipoId: number;
   equipoNombre?: string;
   trabajadorId: number;
   trabajadorNombre?: string;
-  tipoId: number;
-  tipoNombre?: string;
   estadoId: number;
+  estadoNombre?: string;
+  descripcion: string;
+  diagnostico: string;
+  solucion: string;
+  costoReparacion: number;
+  fechaInicio: string;
+  fechaFin: string;
+  observaciones?: string;
 }
-
-
-export function DataTableMantenimiento() {
-  const [data, setData] = useState<Maintenance[]>([]);
+export function DataTableReparaciones() {
+  const [data, setData] = useState<Reparacion[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -56,17 +56,18 @@ export function DataTableMantenimiento() {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingMaintenance, setEditingMaintenance] =
-    useState<Maintenance | null>(null);
+  const [editingReparacion, setEditingReparacion] = useState<Reparacion | null>(
+    null
+  );
 
-  const fetchMaintenances = async () => {
+  const fetchReparaciones = async () => {
     try {
       setLoading(true);
       const response = await fetch(
-        "https://www.registroreparacionesmantenmientos.somee.com/api/Mantenimiento"
+        "https://www.registroreparacionesmantenmientos.somee.com/api/Reparaciones"
       );
-      const maintenances = await response.json();
-      setData(maintenances);
+      const reparaciones = await response.json();
+      setData(reparaciones);
     } catch (error) {
       setError("Error fetching data");
     } finally {
@@ -74,52 +75,52 @@ export function DataTableMantenimiento() {
     }
   };
 
-  const createMaintenance = async (maintenance: Maintenance) => {
+  const createReparacion = async (reparacion: Reparacion) => {
     try {
       const response = await fetch(
-        "https://www.registroreparacionesmantenmientos.somee.com/api/Mantenimiento",
+        "https://www.registroreparacionesmantenmientos.somee.com/api/Reparaciones",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(maintenance),
+          body: JSON.stringify(reparacion),
         }
       );
       if (response.ok) {
-        await fetchMaintenances();
+        await fetchReparaciones();
       } else {
-        throw new Error("Error al crear el mantenimiento");
+        throw new Error("Error al crear la reparación");
       }
     } catch (error) {
-      console.error("Error al crear mantenimiento:", error);
+      console.error("Error al crear reparación:", error);
     }
   };
 
-  const updateMaintenance = async (maintenance: Maintenance) => {
+  const updateReparacion = async (reparacion: Reparacion) => {
     try {
       const response = await fetch(
-        `https://www.registroreparacionesmantenmientos.somee.com/api/Mantenimiento/${maintenance.id}`,
+        `https://www.registroreparacionesmantenmientos.somee.com/api/Reparaciones/${reparacion.id}`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(maintenance),
+          body: JSON.stringify(reparacion),
         }
       );
       if (response.ok) {
-        await fetchMaintenances();
+        await fetchReparaciones();
       } else {
-        throw new Error("Error al actualizar el mantenimiento");
+        throw new Error("Error al actualizar la reparación");
       }
     } catch (error) {
-      console.error("Error al actualizar mantenimiento:", error);
+      console.error("Error al actualizar reparación:", error);
     }
   };
 
-  const handleEdit = (maintenance: Maintenance) => {
-    setEditingMaintenance(maintenance);
+  const handleEdit = (reparacion: Reparacion) => {
+    setEditingReparacion(reparacion);
     setIsModalOpen(true);
   };
 
@@ -136,26 +137,22 @@ export function DataTableMantenimiento() {
     if (confirmation.isConfirmed) {
       try {
         const response = await fetch(
-          `https://www.registroreparacionesmantenmientos.somee.com/api/Mantenimiento/${id}`,
+          `https://www.registroreparacionesmantenmientos.somee.com/api/Reparaciones/${id}`,
           {
             method: "DELETE",
           }
         );
 
         if (response.ok) {
-          await fetchMaintenances();
-          Swal.fire(
-            "Eliminado",
-            "El mantenimiento ha sido eliminado.",
-            "success"
-          );
+          await fetchReparaciones();
+          Swal.fire("Eliminado", "La reparación ha sido eliminada.", "success");
         } else {
-          throw new Error("Error al eliminar el mantenimiento");
+          throw new Error("Error al eliminar la reparación");
         }
       } catch (error) {
         Swal.fire(
           "Error",
-          "Hubo un problema al eliminar el mantenimiento.",
+          "Hubo un problema al eliminar la reparación.",
           "error"
         );
       }
@@ -163,26 +160,28 @@ export function DataTableMantenimiento() {
   };
 
   useEffect(() => {
-    fetchMaintenances();
+    fetchReparaciones();
   }, []);
 
   const table = useReactTable({
     data,
     columns: [
       { accessorKey: "id", header: "ID" },
-      { accessorKey: "fechaInicio", header: "Fecha Inicio" },
-      { accessorKey: "fechaFin", header: "Fecha Fin" },
-      { accessorKey: "descripcion", header: "Descripción" },
-      { accessorKey: "observaciones", header: "Observaciones" },
       { accessorKey: "equipoNombre", header: "Equipo" },
       { accessorKey: "trabajadorNombre", header: "Trabajador" },
       { accessorKey: "estadoNombre", header: "Estado" },
-      { accessorKey: "tipoNombre", header: "Tipo" },
+      { accessorKey: "descripcion", header: "Descripción" },
+      { accessorKey: "diagnostico", header: "Diagnóstico" },
+      { accessorKey: "solucion", header: "Solución" },
+      { accessorKey: "costoReparacion", header: "Costo" },
+      { accessorKey: "fechaInicio", header: "Fecha Inicio" },
+      { accessorKey: "fechaFin", header: "Fecha Fin" },
+      { accessorKey: "observaciones", header: "Observaciones" },
       {
         id: "actions",
         header: "Acciones",
         cell: ({ row }) => {
-          const maintenance = row.original;
+          const reparacion = row.original;
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -192,11 +191,11 @@ export function DataTableMantenimiento() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleEdit(maintenance)}>
+                <DropdownMenuItem onClick={() => handleEdit(reparacion)}>
                   Editar
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => handleDelete(maintenance.id || "")}
+                  onClick={() => handleDelete(reparacion.id || "")}
                 >
                   Eliminar
                 </DropdownMenuItem>
@@ -226,27 +225,25 @@ export function DataTableMantenimiento() {
     <div className="w-full">
       <EntryFormModal
         isOpen={isModalOpen}
-        initialValues={editingMaintenance || undefined}
+        initialValues={editingReparacion || undefined}
         onClose={() => {
           setIsModalOpen(false);
-          setEditingMaintenance(null);
+          setEditingReparacion(null);
         }}
-        onSave={async (maintenance) => {
-          if (maintenance.id) {
-            await updateMaintenance(maintenance);
+        onSave={async (reparacion) => {
+          if (reparacion.id) {
+            await updateReparacion(reparacion);
           } else {
-            await createMaintenance(maintenance);
+            await createReparacion(reparacion);
           }
           setIsModalOpen(false);
-          setEditingMaintenance(null);
+          setEditingReparacion(null);
         }}
       />
       <div className="flex items-center py-4">
         <Input
           placeholder="Filtrar por descripción..."
-          value={
-            (table.getColumn("descripcion")?.getFilterValue() as string) ?? ""
-          }
+          value={(table.getColumn("descripcion")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("descripcion")?.setFilterValue(event.target.value)
           }
@@ -260,7 +257,7 @@ export function DataTableMantenimiento() {
         </Button>
       </div>
       {loading ? (
-          <LoadingSpinner/>
+        <LoadingSpinner/>
       ) : error ? (
         <div>{error}</div>
       ) : (

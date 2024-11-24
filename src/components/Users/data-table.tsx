@@ -29,6 +29,7 @@ import {
   TableRow,
 } from "../ui/table";
 import { EntryFormModal } from "./EntryFormModal";
+import { LoadingSpinner } from "../LoadingSpinner";
 
 interface User {
   id?: string;
@@ -238,7 +239,7 @@ export function DataTable() {
         </Button>
       </div>
       {loading ? (
-        <div>Cargando...</div>
+        <LoadingSpinner />
       ) : error ? (
         <div>{error}</div>
       ) : (

@@ -50,13 +50,10 @@ export function EntryFormModal({
     handleSubmit,
     formState: { errors },
     reset,
-    watch,
   } = useForm<FormData>({
     resolver: yupResolver(schema),
     defaultValues: initialValues || {},
   });
-
-  const estadoId = watch("estadoId");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -137,8 +134,11 @@ export function EntryFormModal({
               : "Agregar Nuevo Mantenimiento"}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="grid grid-cols-2 gap-4"
+        >
+          <div className="space-y-2 col-span-2 sm:col-span-1">
             <Label htmlFor="fechaInicio">Fecha de Inicio</Label>
             <Input id="fechaInicio" {...register("fechaInicio")} type="date" />
             {errors.fechaInicio && (
@@ -148,7 +148,7 @@ export function EntryFormModal({
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 col-span-2 sm:col-span-1">
             <Label htmlFor="fechaFin">Fecha de Fin</Label>
             <Input id="fechaFin" {...register("fechaFin")} type="date" />
             {errors.fechaFin && (
@@ -158,7 +158,7 @@ export function EntryFormModal({
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 col-span-2">
             <Label htmlFor="descripcion">Descripción</Label>
             <Input id="descripcion" {...register("descripcion")} />
             {errors.descripcion && (
@@ -168,12 +168,12 @@ export function EntryFormModal({
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 col-span-2">
             <Label htmlFor="observaciones">Observaciones</Label>
             <Input id="observaciones" {...register("observaciones")} />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 col-span-2 sm:col-span-1">
             <Label htmlFor="equipoId">Equipo</Label>
             <select
               id="equipoId"
@@ -194,7 +194,7 @@ export function EntryFormModal({
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 col-span-2 sm:col-span-1">
             <Label htmlFor="trabajadorId">Trabajador</Label>
             <select
               id="trabajadorId"
@@ -215,7 +215,7 @@ export function EntryFormModal({
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 col-span-2 sm:col-span-1">
             <Label htmlFor="tipoId">Tipo de Mantenimiento</Label>
             <select
               id="tipoId"
@@ -236,7 +236,7 @@ export function EntryFormModal({
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 col-span-2 sm:col-span-1">
             <Label htmlFor="estadoId">Estado</Label>
             <select
               id="estadoId"
@@ -245,11 +245,7 @@ export function EntryFormModal({
             >
               <option value={0}>Seleccione un estado</option>
               {estadosMantenimiento.map((estado) => (
-                <option
-                  key={estado.id}
-                  value={estado.id}
-                  selected={estado.id === estadoId} // Selección inicial
-                >
+                <option key={estado.id} value={estado.id}>
                   {estado.nombre}
                 </option>
               ))}
@@ -261,9 +257,11 @@ export function EntryFormModal({
             )}
           </div>
 
-          <Button type="submit" className="w-full">
-            {initialValues?.id ? "Actualizar" : "Guardar"}
-          </Button>
+          <div className="col-span-2">
+            <Button type="submit" className="w-full">
+              {initialValues?.id ? "Actualizar" : "Guardar"}
+            </Button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

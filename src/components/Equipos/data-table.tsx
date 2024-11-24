@@ -29,6 +29,7 @@ import {
   TableRow,
 } from "../ui/table";
 import { EntryFormModal } from "./EntryFormModal";
+import { LoadingSpinner } from "../LoadingSpinner";
 
 interface Equipo {
   id?: string;
@@ -246,7 +247,7 @@ export function DataTableEquipos() {
         </Button>
       </div>
       {loading ? (
-        <div>Cargando...</div>
+        <LoadingSpinner/>
       ) : error ? (
         <div>{error}</div>
       ) : (

@@ -90,8 +90,11 @@ export function EntryFormModal({
             {initialValues?.id ? "Editar Usuario" : "Agregar Nuevo Usuario"}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="grid grid-cols-2 gap-4"
+        >
+          <div className="space-y-2 col-span-2 sm:col-span-1">
             <Label htmlFor="nombre">Nombre</Label>
             <Input id="nombre" {...register("nombre")} />
             {errors.nombre && (
@@ -101,7 +104,7 @@ export function EntryFormModal({
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 col-span-2 sm:col-span-1">
             <Label htmlFor="apellido">Apellido</Label>
             <Input id="apellido" {...register("apellido")} />
             {errors.apellido && (
@@ -111,7 +114,7 @@ export function EntryFormModal({
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 col-span-2 sm:col-span-1">
             <Label htmlFor="correo">Correo</Label>
             <Input id="correo" {...register("correo")} />
             {errors.correo && (
@@ -121,7 +124,7 @@ export function EntryFormModal({
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 col-span-2 sm:col-span-1">
             <Label htmlFor="telefono">Teléfono</Label>
             <Input id="telefono" {...register("telefono")} />
             {errors.telefono && (
@@ -131,7 +134,7 @@ export function EntryFormModal({
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 col-span-2 sm:col-span-1">
             <Label htmlFor="cargo">Cargo</Label>
             <Input id="cargo" {...register("cargo")} />
             {errors.cargo && (
@@ -139,7 +142,7 @@ export function EntryFormModal({
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 col-span-2 sm:col-span-1">
             <Label htmlFor="estadoId">Estado</Label>
             <select
               id="estadoId"
@@ -156,9 +159,11 @@ export function EntryFormModal({
             )}
           </div>
 
-          <Button type="submit" className="w-full">
-            {initialValues?.id ? "Actualizar" : "Guardar"}
-          </Button>
+          <div className="col-span-2">
+            <Button type="submit" className="w-full">
+              {initialValues?.id ? "Actualizar" : "Guardar"}
+            </Button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

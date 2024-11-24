@@ -14,6 +14,7 @@ import { DataTable } from "./components/Users/data-table";
 import { useMainStore } from "./store";
 import { DataTableMantenimiento } from "./components/Mantenimientos/data-table";
 import { DataTableEquipos } from "./components/Equipos/data-table";
+import { DataTableReparaciones } from "./components/Reparaciones/data-table";
 
 // Tipos para las props del componente ProtectedRoute
 interface ProtectedRouteProps {
@@ -98,7 +99,11 @@ const App: React.FC = () => {
             <Route path="reparaciones">
               <Route
                 path="solicitar"
-                element={<div>Solicitar Reparación</div>}
+                element={
+                  <div>
+                    <DataTableReparaciones />
+                  </div>
+                }
               />
             </Route>
           </Route>
