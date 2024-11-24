@@ -19,6 +19,7 @@ type FormData = {
 
 export default function LoginContainer() {
   const [genericError, setGenericError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false); // Estado de carga
   const login = useMainStore((state) => state.login);
   const navigate = useNavigate();
 
@@ -31,27 +32,28 @@ export default function LoginContainer() {
   });
 
   const onSubmit = async (data: FormData) => {
+    setIsLoading(true); // Iniciar carga
+    setGenericError(null); // Limpiar errores previos
     try {
-      login({
-        email: data.email,
-        id: 1,
-        name: data.email,
-      });
-
       const resp = await ApiMain.post("/Auth/login", {
         correo: data.email,
         password: data.password,
       });
-      
 
       if (resp.data.error) {
-        setGenericError(resp.data);
-        return;
+        setGenericError(resp.data.error);
       } else {
+        login({
+          email: data.email,
+          id: 1,
+          name: data.email,
+        });
         navigate("/");
       }
     } catch (error) {
       setGenericError("Datos incorrectos");
+    } finally {
+      setIsLoading(false); // Detener carga
     }
   };
 
@@ -111,9 +113,33 @@ export default function LoginContainer() {
 
             <Button
               type="submit"
-              className="w-full bg-[#2088CA] hover:bg-[#1c7ab5]"
+              className="w-full bg-[#2088CA] hover:bg-[#1c7ab5] flex justify-center items-center"
+              disabled={isLoading} // Deshabilitar el botón mientras carga
             >
-              Iniciar sesión
+              {isLoading ? (
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8z"
+                  ></path>
+                </svg>
+              ) : (
+                "Iniciar sesión"
+              )}
             </Button>
           </form>
         </CardContent>
