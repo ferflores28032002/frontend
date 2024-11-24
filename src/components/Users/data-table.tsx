@@ -9,11 +9,9 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import * as React from "react";
-
-import { format } from "date-fns";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import { Badge } from "../ui/badge";
+import { useEffect, useState } from "react";
+import { MoreHorizontal } from "lucide-react";
+import Swal from "sweetalert2";
 import { Button } from "../ui/button";
 import {
   DropdownMenu,
@@ -37,107 +35,131 @@ interface User {
   nombre: string;
   apellido: string;
   correo: string;
-  estado: "Activo" | "Inactivo" | "Pendiente";
-  fechaCreacion?: Date;
+  telefono: string;
+  cargo: string;
+  estadoNombre?: string; // Opcional para evitar errores
+  fechaContratacion?: any; // Opcional y tipo `any`
 }
 
-const initialData: User[] = [
-  {
-    id: "1",
-    nombre: "Juan",
-    apellido: "Pérez",
-    correo: "juan.perez@example.com",
-    estado: "Activo",
-    fechaCreacion: new Date("2023-01-15"),
-  },
-  {
-    id: "2",
-    nombre: "María",
-    apellido: "González",
-    correo: "maria.gonzalez@example.com",
-    estado: "Inactivo",
-    fechaCreacion: new Date("2023-03-22"),
-  },
-  {
-    id: "3",
-    nombre: "Carlos",
-    apellido: "Rodríguez",
-    correo: "carlos.rodriguez@example.com",
-    estado: "Pendiente",
-    fechaCreacion: new Date("2023-05-10"),
-  },
-];
-
 export function DataTable() {
-  const [data, setData] = React.useState<User[]>(initialData);
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [editingUser, setEditingUser] = React.useState<User | null>(null);
+  const [data, setData] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        "https://www.registroreparacionesmantenmientos.somee.com/api/Trabajadores"
+      );
+      const users = await response.json();
+      setData(users);
+    } catch (error) {
+      setError("Error fetching data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createUser = async (user: User) => {
+    try {
+      const response = await fetch(
+        "https://www.registroreparacionesmantenmientos.somee.com/api/Trabajadores",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(user),
+        }
+      );
+      if (response.ok) {
+        await fetchUsers();
+      } else {
+        throw new Error("Error al crear el usuario");
+      }
+    } catch (error) {
+      console.error("Error al crear usuario:", error);
+    }
+  };
+
+  const updateUser = async (user: User) => {
+    try {
+      const response = await fetch(
+        `https://www.registroreparacionesmantenmientos.somee.com/api/Trabajadores/${user.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(user),
+        }
+      );
+      if (response.ok) {
+        await fetchUsers();
+      } else {
+        throw new Error("Error al actualizar el usuario");
+      }
+    } catch (error) {
+      console.error("Error al actualizar usuario:", error);
+    }
+  };
+
+  const handleEdit = (user: User) => {
+    setEditingUser(user);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    const confirmation = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: "No podrás deshacer esta acción.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (confirmation.isConfirmed) {
+      try {
+        const response = await fetch(
+          `https://www.registroreparacionesmantenmientos.somee.com/api/Trabajadores/${id}`,
+          {
+            method: "DELETE",
+          }
+        );
+
+        if (response.ok) {
+          await fetchUsers();
+          Swal.fire("Eliminado", "El trabajador ha sido eliminado.", "success");
+        } else {
+          throw new Error("Error al eliminar el usuario");
+        }
+      } catch (error) {
+        Swal.fire("Error", "Hubo un problema al eliminar el usuario.", "error");
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const table = useReactTable({
     data,
     columns: [
-      {
-        accessorKey: "nombre",
-        header: "Nombre",
-        cell: ({ row }) => (
-          <div className="capitalize">{row.getValue("nombre")}</div>
-        ),
-      },
-      {
-        accessorKey: "apellido",
-        header: "Apellido",
-        cell: ({ row }) => (
-          <div className="capitalize">{row.getValue("apellido")}</div>
-        ),
-      },
-      {
-        accessorKey: "correo",
-        header: ({ column }) => (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Correo
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        ),
-        cell: ({ row }) => <div>{row.getValue("correo")}</div>,
-      },
-      {
-        accessorKey: "estado",
-        header: "Estado",
-        cell: ({ row }) => {
-          const estado = row.getValue("estado") as string;
-          return (
-            <Badge
-              className={
-                estado === "Activo"
-                  ? "bg-green-500"
-                  : estado === "Inactivo"
-                  ? "bg-red-500"
-                  : "bg-yellow-500"
-              }
-            >
-              {estado}
-            </Badge>
-          );
-        },
-      },
-      {
-        accessorKey: "fechaCreacion",
-        header: "Fecha de Creación",
-        cell: ({ row }) => {
-          const fecha = row.getValue("fechaCreacion") as Date;
-          return <div>{format(fecha, "dd/MM/yyyy")}</div>;
-        },
-      },
+      { accessorKey: "id", header: "ID" },
+      { accessorKey: "nombre", header: "Nombre" },
+      { accessorKey: "apellido", header: "Apellido" },
+      { accessorKey: "correo", header: "Correo" },
+      { accessorKey: "telefono", header: "Teléfono" },
+      { accessorKey: "cargo", header: "Cargo" },
       {
         id: "actions",
         header: "Acciones",
@@ -164,60 +186,50 @@ export function DataTable() {
         },
       },
     ],
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
     },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
   });
-  const handleEdit = (user: User) => {
-    setEditingUser(user);
-    setIsModalOpen(true);
-  };
-
-  const handleDelete = (id: string) => {
-    setData((prevData) => prevData.filter((user) => user.id !== id));
-  };
 
   return (
     <div className="w-full">
       <EntryFormModal
         isOpen={isModalOpen}
+        initialValues={editingUser || undefined}
         onClose={() => {
           setIsModalOpen(false);
           setEditingUser(null);
         }}
-        initialValues={
-          editingUser
-            ? {
-                apellido: editingUser.apellido,
-                correo: editingUser.correo,
-                estado: editingUser.estado,
-                nombre: editingUser.nombre,
-              }
-            : undefined
-        }
+        onSave={async (user) => {
+          if (user.id) {
+            await updateUser(user);
+          } else {
+            await createUser(user);
+          }
+          setIsModalOpen(false);
+          setEditingUser(null);
+        }}
       />
-
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filtrar por correo..."
-          value={(table.getColumn("correo")?.getFilterValue() as string) ?? ""}
+          placeholder="Filtrar por nombre..."
+          value={(table.getColumn("nombre")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("correo")?.setFilterValue(event.target.value)
+            table.getColumn("nombre")?.setFilterValue(event.target.value)
           }
           className="w-full mr-2"
         />
-
         <Button
           className="bg-[#2088CA] hover:bg-[#1c7ab5] ml-2"
           onClick={() => setIsModalOpen(true)}
@@ -225,51 +237,57 @@ export function DataTable() {
           Agregar
         </Button>
       </div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="h-16">
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
+      {loading ? (
+        <div>Cargando...</div>
+      ) : error ? (
+        <div>{error}</div>
+      ) : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={table.getAllColumns().length}
-                  className="h-24 text-center"
-                >
-                  No se encontraron resultados.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id} className="h-16">
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={table.getAllColumns().length}
+                    className="h-24 text-center"
+                  >
+                    No se encontraron resultados.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }

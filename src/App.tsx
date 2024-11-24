@@ -57,7 +57,7 @@ const App: React.FC = () => {
             />
 
             {/* Usuarios */}
-            <Route path="usuarios">
+            <Route path="trabajadores">
               <Route
                 path="lista"
                 element={

@@ -1,6 +1,6 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { Button } from "../../components/ui/button";
 import {
@@ -11,13 +11,6 @@ import {
 } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
 
 const schema = yup
   .object({
@@ -25,11 +18,16 @@ const schema = yup
     apellido: yup.string().required("El apellido es requerido"),
     correo: yup
       .string()
-      .email("Email inválido")
+      .email("Debe ser un correo válido")
       .required("El correo es requerido"),
-    estado: yup
+    telefono: yup
       .string()
-      .oneOf(["Activo", "Inactivo", "Pendiente"])
+      .matches(/^\d+$/, "El teléfono debe contener solo números")
+      .required("El teléfono es requerido"),
+    cargo: yup.string().required("El cargo es requerido"),
+    estadoId: yup
+      .number()
+      .oneOf([1, 2], "Debe seleccionar un estado válido")
       .required("El estado es requerido"),
   })
   .required();
@@ -37,23 +35,22 @@ const schema = yup
 type FormData = yup.InferType<typeof schema>;
 
 interface EntryFormModalProps {
-  initialValues?: Partial<FormData>; // Valores iniciales opcionales
-  isOpen: boolean; // Control de apertura del modal
-  onClose: () => void; // Función para cerrar el modal
+  initialValues?: Partial<FormData & { id?: string }>; // Incluye `id` opcional
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (data: FormData & { id?: string }) => void; // Ajustar tipo de `onSave`
 }
-
-const estados = ["Activo", "Inactivo", "Pendiente"];
 
 export function EntryFormModal({
   initialValues,
   isOpen,
   onClose,
+  onSave,
 }: EntryFormModalProps) {
   const {
     register,
     handleSubmit,
     formState: { errors },
-    control,
     reset,
   } = useForm<FormData>({
     resolver: yupResolver(schema),
@@ -62,14 +59,27 @@ export function EntryFormModal({
 
   useEffect(() => {
     if (initialValues) {
-      reset(initialValues);
+      reset(initialValues); // Reinicia el formulario con los valores iniciales si los hay
+    } else {
+      reset({
+        nombre: "",
+        apellido: "",
+        correo: "",
+        telefono: "",
+        cargo: "",
+        estadoId: 1, // Valor predeterminado para estadoId (1 = Activo)
+      }); // Limpia el formulario al crear
     }
   }, [initialValues, reset]);
 
-  const onSubmit = (data: FormData) => {
-    console.log(data, "data");
-    onClose();
-    reset();
+  const onSubmit = async (data: FormData) => {
+    try {
+      await onSave({ ...data, id: initialValues?.id });
+      onClose();
+      reset();
+    } catch (error) {
+      console.error("Error al guardar los datos:", error);
+    }
   };
 
   return (
@@ -77,7 +87,7 @@ export function EntryFormModal({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {initialValues ? "Editar Usuario" : "Agregar Nuevo Usuario"}
+            {initialValues?.id ? "Editar Usuario" : "Agregar Nuevo Usuario"}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -103,7 +113,7 @@ export function EntryFormModal({
 
           <div className="space-y-2">
             <Label htmlFor="correo">Correo</Label>
-            <Input id="correo" type="email" {...register("correo")} />
+            <Input id="correo" {...register("correo")} />
             {errors.correo && (
               <p className="text-sm text-destructive">
                 {errors.correo.message}
@@ -112,38 +122,42 @@ export function EntryFormModal({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="estado">Estado</Label>
-            <Controller
-              name="estado"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  defaultValue={initialValues?.estado || ""}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {estados.map((estado) => (
-                      <SelectItem key={estado} value={estado}>
-                        {estado}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            {errors.estado && (
+            <Label htmlFor="telefono">Teléfono</Label>
+            <Input id="telefono" {...register("telefono")} />
+            {errors.telefono && (
               <p className="text-sm text-destructive">
-                {errors.estado.message}
+                {errors.telefono.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="cargo">Cargo</Label>
+            <Input id="cargo" {...register("cargo")} />
+            {errors.cargo && (
+              <p className="text-sm text-destructive">{errors.cargo.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="estadoId">Estado</Label>
+            <select
+              id="estadoId"
+              {...register("estadoId", { valueAsNumber: true })}
+              className="block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-300"
+            >
+              <option value={1}>Activo</option>
+              <option value={2}>Inactivo</option>
+            </select>
+            {errors.estadoId && (
+              <p className="text-sm text-destructive">
+                {errors.estadoId.message}
               </p>
             )}
           </div>
 
           <Button type="submit" className="w-full">
-            {initialValues ? "Actualizar" : "Guardar"}
+            {initialValues?.id ? "Actualizar" : "Guardar"}
           </Button>
         </form>
       </DialogContent>

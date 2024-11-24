@@ -42,15 +42,16 @@ export default function LoginContainer() {
         correo: data.email,
         password: data.password,
       });
+      
 
       if (resp.data.error) {
-        setGenericError(resp.data.error);
+        setGenericError(resp.data);
         return;
       } else {
         navigate("/");
       }
     } catch (error) {
-      setGenericError("Ha ocurrido un error. Por favor, intenta de nuevo.");
+      setGenericError("Datos incorrectos");
     }
   };
 

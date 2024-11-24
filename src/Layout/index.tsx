@@ -47,11 +47,11 @@ const navItems: NavItem[] = [
     icon: LayoutDashboard, // Cambia el ícono según tu preferencia
   },
   {
-    title: "Usuarios",
-    href: "/usuarios",
+    title: "Trabajadores",
+    href: "/trabajadores",
     icon: Users,
     submenu: [
-      { title: "Lista de Usuarios", href: "/usuarios/lista", icon: FileText },
+      { title: "Lista de Trabajadores", href: "/trabajadores/lista", icon: FileText },
     ],
   },
   {
@@ -287,7 +287,7 @@ export default function Layout() {
     }
   };
 
-  const user = useMainStore((state) => state.user);
+  // const user = useMainStore((state) => state.user);
   const logout = useMainStore((state) => state.logout);
 
   return (
@@ -338,12 +338,7 @@ export default function Layout() {
           <div className="flex items-center gap-3">
             <UserMenu />
             <div>
-              <p className="text-sm font-medium">
-                {user?.name || "admin demo"}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {user?.email || ""}
-              </p>
+              <p className="text-sm font-medium">{"admin demo"}</p>
             </div>
           </div>
         </div>
@@ -362,7 +357,7 @@ export default function Layout() {
           </Button>
 
           <div className="ml-auto flex items-center gap-4">
-            <span>Hola {user?.name || "admin demo"}!</span>
+            <span>Hola {"admin"}</span>
             <Link to="/login">
               <Button variant="ghost" size="icon" onClick={logout}>
                 <LogOut className="h-5 w-5" />
