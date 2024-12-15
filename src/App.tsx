@@ -48,7 +48,7 @@ const App: React.FC = () => {
         <Route path="/login" element={<LoginPage />} />
 
         {/* Rutas protegidas */}
-        <Route element={<ProtectedRoute isAllowed={!!user} />}>
+     
           <Route path="/" element={<Layout />}>
             <Route
               index
@@ -107,7 +107,7 @@ const App: React.FC = () => {
               />
             </Route>
           </Route>
-        </Route>
+      
       </Routes>
     </BrowserRouter>
   );
